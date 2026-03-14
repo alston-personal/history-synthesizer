@@ -1,0 +1,195 @@
+{
+    "nodes": [
+        {
+            "parameters": {},
+            "id": "trigger",
+            "name": "Manual Trigger",
+            "type": "n8n-nodes-base.manualTrigger",
+            "typeVersion": 1,
+            "position": [
+                250,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "url": "https://serpapi.com/search",
+                "sendQueryParameters": true,
+                "queryParametersUi": {
+                    "parameter": [
+                        {
+                            "name": "q",
+                            "value": "NVIDIA history news milestones"
+                        },
+                        {
+                            "name": "api_key",
+                            "value": "1e20ae6397bae5b68d24f10e7774792d8729e8405ac64764ec590e6095351ec3"
+                        },
+                        {
+                            "name": "tbm",
+                            "value": "nws"
+                        }
+                    ]
+                }
+            },
+            "id": "serp_search",
+            "name": "SerpAPI Search",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.1,
+            "position": [
+                450,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "const results = ($input.item.json.organic_results || []).concat($input.item.json.news_results || []);\nreturn results.slice(0, 5).map(r => ({\n  json: {\n    text: `Title: ${r.title}. Snippet: ${r.snippet || ''}`,\n    link: r.link\n  }\n}));"
+            },
+            "id": "prepare_items",
+            "name": "Prepare Items",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                650,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "model": "gemini-1.5-flash",
+                "options": {}
+            },
+            "id": "gemini_model",
+            "name": "Google Gemini",
+            "type": "n8n-nodes-base.googleGeminiChatModel",
+            "typeVersion": 1,
+            "position": [
+                850,
+                500
+            ],
+            "credentials": {
+                "googleGeminiSdkApi": {
+                    "id": "NEW_GEMINI_CREDENTIAL_ID",
+                    "name": "Google Gemini API Key"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "你是歷史學家。請從這段文字中抽取一個該公司的歷史里程碑或重要事件。\n輸出必須是一個小型的 JSON 對象，包含：\n{\n  \"date\": \"YYYY-MM-DD\",\n  \"event\": \"事件描述\"\n}\n\n文字：\n{{ $json.text }}"
+            },
+            "id": "ai_chain",
+            "name": "Basic LLM Chain",
+            "type": "n8n-nodes-base.basicLlmChain",
+            "typeVersion": 1,
+            "position": [
+                850,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "try {\n  const text = $input.item.json.text.replace(/```json|```/g, \"\").trim();\n  return { json: JSON.parse(text) };\n} catch (e) {\n  return { json: { date: \"Unknown\", event: \"Extraction failed\" } };\n}"
+            },
+            "id": "parse_result",
+            "name": "Parse Result",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1050,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "operation": "insert",
+                "table": {
+                    "__rl": true,
+                    "value": "company_events",
+                    "mode": "list",
+                    "cachedResultName": "company_events"
+                },
+                "columns": {
+                    "mappingMode": "defineBelow",
+                    "value": {
+                        "company_name": "NVIDIA",
+                        "event_date": "={{ $json.date }}",
+                        "description": "={{ $json.event }}",
+                        "source_url": "={{ $(\"Prepare Items\").item.json.link }}"
+                    }
+                }
+            },
+            "id": "supabase_save",
+            "name": "Supabase Save",
+            "type": "n8n-nodes-base.supabase",
+            "typeVersion": 1,
+            "position": [
+                1250,
+                300
+            ]
+        }
+    ],
+    "connections": {
+        "Manual Trigger": {
+            "main": [
+                [
+                    {
+                        "node": "SerpAPI Search",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "SerpAPI Search": {
+            "main": [
+                [
+                    {
+                        "node": "Prepare Items",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Prepare Items": {
+            "main": [
+                [
+                    {
+                        "node": "Basic LLM Chain",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Google Gemini": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "Basic LLM Chain",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Basic LLM Chain": {
+            "main": [
+                [
+                    {
+                        "node": "Parse Result",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Parse Result": {
+            "main": [
+                [
+                    {
+                        "node": "Supabase Save",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

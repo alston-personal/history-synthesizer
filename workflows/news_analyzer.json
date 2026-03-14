@@ -1,0 +1,235 @@
+{
+  "name": "History Synthesizer - Company News Analyzer",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "76162391-7647-49f3-80e9-74d6c7081546",
+      "name": "When clicking \"Execute Workflow\"",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        380,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "company_name",
+              "value": "NVIDIA"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e4b6c708-1546-49f3-80e9-761623917647",
+      "name": "Set Company",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        600,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://serpapi.com/search",
+        "sendQueryParameters": true,
+        "queryParametersUi": {
+          "parameter": [
+            {
+              "name": "q",
+              "value": "={{ $json.company_name }} history milestones news"
+            },
+            {
+              "name": "tbm",
+              "value": "nws"
+            },
+            {
+              "name": "api_key",
+              "value": "1e20ae6397bae5b68d24f10e7774792d8729e8405ac64764ec590e6095351ec3"
+            },
+            {
+              "name": "num",
+              "value": "5"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f380e976-1623-49f3-74d6-c70815467647",
+      "name": "SerpAPI Search",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        820,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = $input.item.json.news_results;\nreturn results.map(r => ({\n  json: {\n    title: r.title,\n    link: r.link,\n    source: r.source,\n    date: r.date\n  }\n}));"
+      },
+      "id": "49f380e9-7616-2391-74d6-c70815467647",
+      "name": "Split Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.link }}",
+        "options": {}
+      },
+      "id": "239174d6-c708-49f3-80e9-761615467647",
+      "name": "Fetch Content",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1260,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gemini-1.5-pro",
+          "mode": "list",
+          "cachedResultName": "Gemini 1.5 Pro"
+        },
+        "messages": {
+          "values": [
+            {
+              "message": "You are a history synthesis expert. Analyze the following news content and extract historical events or milestones for the company. \n\nOutput ONLY a JSON array in the format:\n[\n  {\n    \"event_date\": \"YYYY-MM-DD\",\n    \"description\": \"...\",\n    \"event_type\": \"...\",\n    \"confidence\": 95\n  }\n]\n\nCONTENT:\nTitle: {{ $item(0).$json.title }}\nBody: {{ $json.data }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "80e97616-2391-74d6-c708-49f315467647",
+      "name": "Gemini Analysis",
+      "type": "n8n-nodes-base.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        1480,
+        240
+      ],
+      "credentials": {
+        "googleGeminiApi": {
+          "id": "YOUR_GEMINI_CRED_ID",
+          "name": "Google Gemini Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": {
+          "__rl": true,
+          "value": "company_events",
+          "mode": "list",
+          "cachedResultName": "company_events"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "company_name": "={{ $('Set Company').item.json.company_name }}",
+            "event_date": "={{ $json.event_date }}",
+            "description": "={{ $json.description }}",
+            "event_type": "={{ $json.event_type }}",
+            "confidence": "={{ $json.confidence }}",
+            "source_url": "={{ $('Split Results').item.json.link }}"
+          },
+          "matchingColumns": [
+            "id"
+          ]
+        }
+      },
+      "id": "15467647-49f3-80e9-7616-239174d6c708",
+      "name": "Supabase Save",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1700,
+        240
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking \"Execute Workflow\"": {
+      "main": [
+        [
+          {
+            "node": "Set Company",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Company": {
+      "main": [
+        [
+          {
+            "node": "SerpAPI Search",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SerpAPI Search": {
+      "main": [
+        [
+          {
+            "node": "Split Results",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Results": {
+      "main": [
+        [
+          {
+            "node": "Fetch Content",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Content": {
+      "main": [
+        [
+          {
+            "node": "Gemini Analysis",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Analysis": {
+      "main": [
+        [
+          {
+            "node": "Supabase Save",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f74e6c08-1546-49f3-80e9-761623917647",
+  "id": "K1ZFhDMsjUzR9AkSAsam4",
+  "meta": {
+    "templateId": "2333"
+  }
+}

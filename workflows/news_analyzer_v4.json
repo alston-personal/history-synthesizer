@@ -1,0 +1,146 @@
+{
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trigger",
+      "name": "When clicking \"Execute Workflow\"",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "company_name",
+              "value": "NVIDIA"
+            }
+          ]
+        }
+      },
+      "id": "set_company",
+      "name": "Set Company",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        450,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://serpapi.com/search",
+        "sendQueryParameters": true,
+        "queryParametersUi": {
+          "parameter": [
+            {
+              "name": "q",
+              "value": "={{ $json[\"company_name\"] }} history milestones company"
+            },
+            {
+              "name": "api_key",
+              "value": "1e20ae6397bae5b68d24f10e7774792d8729e8405ac64764ec590e6095351ec3"
+            },
+            {
+              "name": "num",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "id": "serp_search",
+      "name": "SerpAPI Search",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        650,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = ($input.item.json.organic_results || []).concat($input.item.json.news_results || []);\nreturn results.slice(0, 5).map(r => ({\n  json: {\n    text_to_analyze: `Title: ${r.title}. Summary: ${r.snippet || r.description || ''}`,\n    link: r.link,\n    date: r.date\n  }\n}));"
+      },
+      "id": "prepare_data",
+      "name": "Prepare Search Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        850,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [{\n    \"parts\":[{\"text\": \"你是歷史專家，請分析這段摘要並抽取該公司的歷史事件或里程碑。輸出 JSON 格式: {\\\"date\\\": \\\"YYYY-MM-DD\\\", \\\"event\\\": \\\"...\\\"}。內容如下：\\n\\n{{ $json.text_to_analyze.replace(/\\\"/g, '\\\\\\\"') }}\"}]\n  }]\n}",
+        "sendQueryParameters": true,
+        "queryParametersUi": {
+          "parameter": [
+            {
+              "name": "key",
+              "value": "AIzaSyAHRVO4VPMrsRvgGZcZHfYqelp5Xgrb0F4"
+            }
+          ]
+        }
+      },
+      "id": "ai_analysis",
+      "name": "Gemini Analysis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1100,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking \"Execute Workflow\"": {
+      "main": [
+        [
+          {
+            "node": "Set Company",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Company": {
+      "main": [
+        [
+          {
+            "node": "SerpAPI Search",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SerpAPI Search": {
+      "main": [
+        [
+          {
+            "node": "Prepare Search Results",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Search Results": {
+      "main": [
+        [
+          {
+            "node": "Gemini Analysis",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

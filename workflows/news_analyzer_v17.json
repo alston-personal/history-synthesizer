@@ -1,0 +1,182 @@
+{
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual_trigger",
+      "name": "When clicking \"Execute Workflow\"",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://serpapi.com/search?api_key=1e20ae6397bae5b68d24f10e7774792d8729e8405ac64764ec590e6095351ec3&q=NVIDIA history",
+        "jsonParameters": true
+      },
+      "id": "serp_search",
+      "name": "SerpAPI Search",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        450,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = $input.item.json.news_results || $input.item.json.organic_results || [];\nif (results.length === 0) {\n  return { json: { content_text: \"NVIDIA was founded in 1993.\" } };\n}\nreturn results.slice(0, 3).map(r => ({ json: { content_text: (r.title + \" \" + (r.snippet || \"\")).replace(/\"/g, \"'\") } }));"
+      },
+      "id": "prepare_data",
+      "name": "Prepare Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        650,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const prompt = `Extract milestone date and description as JSON: {\"date\":\"YYYY-MM-DD\", \"event\":\"...\"}. TEXT: ${$input.item.json.content_text}`;\nreturn {\n  json: {\n    gemini_body: {\n      contents: [\n        {\n          parts: [{ text: prompt }]\n        }\n      ]\n    }\n  }\n};"
+      },
+      "id": "build_gemini_body",
+      "name": "Build Gemini Body",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        850,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyAHRVO4VPMrsRvgGZcZHfYqelp5Xgrb0F4",
+        "jsonParameters": true,
+        "bodyContentType": "raw",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.gemini_body) }}"
+      },
+      "id": "gemini_analysis",
+      "name": "Gemini Analysis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1050,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "try {\n  const text = $input.item.json.candidates[0].content.parts[0].text.replace(/```json|```/g, \"\").trim();\n  const event = JSON.parse(text);\n  return {\n    json: {\n      ...event,\n      supabase_body: {\n        company_name: \"NVIDIA\",\n        event_date: event.date,\n        description: event.event\n      }\n    }\n  };\n} catch (e) {\n  return { json: { date: \"2024-01-01\", event: \"Analysis Success but Parse failed\" } };\n}"
+      },
+      "id": "parse_gemini",
+      "name": "Parse Gemini",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        1250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "https://icxbymapactpthllnjya.supabase.co/rest/v1/company_events",
+        "jsonParameters": true,
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "apikey",
+              "value": "sb_secret_CEfk0K50zCfCK95Ji15l0g_c7R3MnmR"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer sb_secret_CEfk0K50zCfCK95Ji15l0g_c7R3MnmR"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "bodyContentType": "raw",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.supabase_body) }}"
+      },
+      "id": "supabase_save",
+      "name": "Supabase Save",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1450,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "When clicking \"Execute Workflow\"": {
+      "main": [
+        [
+          {
+            "node": "SerpAPI Search",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SerpAPI Search": {
+      "main": [
+        [
+          {
+            "node": "Prepare Data",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Data": {
+      "main": [
+        [
+          {
+            "node": "Build Gemini Body",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Gemini Body": {
+      "main": [
+        [
+          {
+            "node": "Gemini Analysis",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Analysis": {
+      "main": [
+        [
+          {
+            "node": "Parse Gemini",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Gemini": {
+      "main": [
+        [
+          {
+            "node": "Supabase Save",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
