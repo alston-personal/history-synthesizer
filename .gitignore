@@ -1,0 +1,13 @@
+.DS_Store
+Thumbs.db
+*.tmp
+*.bak
+STATUS.md
+memory
+memory/
+.agent
+.agent/
+__pycache__/
+*.pyc
+node_modules/
+dist/

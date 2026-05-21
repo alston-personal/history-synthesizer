@@ -1,0 +1,194 @@
+{
+    "nodes": [
+        {
+            "parameters": {},
+            "id": "trigger",
+            "name": "Manual Trigger",
+            "type": "n8n-nodes-base.manualTrigger",
+            "typeVersion": 1,
+            "position": [
+                100,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "url": "https://serpapi.com/search",
+                "sendQueryParameters": true,
+                "queryParametersUi": {
+                    "parameter": [
+                        {
+                            "name": "q",
+                            "value": "NVIDIA history news milestones"
+                        },
+                        {
+                            "name": "api_key",
+                            "value": "1e20ae6397bae5b68d24f10e7774792d8729e8405ac64764ec590e6095351ec3"
+                        },
+                        {
+                            "name": "num",
+                            "value": "10"
+                        }
+                    ]
+                }
+            },
+            "id": "serp_search",
+            "name": "SerpAPI Search",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.1,
+            "position": [
+                300,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "const results = ($input.item.json.organic_results || []).concat($input.item.json.news_results || []);\nconst allText = results.slice(0, 10).map((r, i) => `Source ${i+1}: ${r.title}. ${r.snippet || ''}`).join('\\n\\n');\nreturn { json: { allText, results } };"
+            },
+            "id": "aggregate_snippets",
+            "name": "Aggregate Snippets",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                500,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "model": "gemini-1.5-flash",
+                "options": {}
+            },
+            "id": "gemini_model",
+            "name": "Google Gemini",
+            "type": "n8n-nodes-base.googleGeminiChatModel",
+            "typeVersion": 1,
+            "position": [
+                700,
+                500
+            ],
+            "credentials": {
+                "googleGeminiSdkApi": {
+                    "id": "NEW_GEMINI_CREDENTIAL_ID",
+                    "name": "Google Gemini API Key"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "你是歷史學家。請從以下多個來源中抽取該公司的重要歷史里程碑或事件。\n輸出必須是一個 JSON 數組，每個對象包含：\n{\n  \"date\": \"YYYY-MM-DD (or YYYY)\",\n  \"event\": \"事件描述\"\n}\n如果沒有發現具體事件，請返回空數組 []。\n\n來源文字：\n{{ $json.allText }}"
+            },
+            "id": "ai_synthesis",
+            "name": "AI Synthesis",
+            "type": "n8n-nodes-base.basicLlmChain",
+            "typeVersion": 1,
+            "position": [
+                700,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "try {\n  const text = $input.item.json.text.replace(/```json|```/g, \"\").trim();\n  const events = JSON.parse(text);\n  return events.map(e => ({ json: e }));\n} catch (e) {\n  return [];\n}"
+            },
+            "id": "parse_events",
+            "name": "Parse Events",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                900,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "operation": "insert",
+                "table": {
+                    "__rl": true,
+                    "value": "company_events",
+                    "mode": "list",
+                    "cachedResultName": "company_events"
+                },
+                "columns": {
+                    "mappingMode": "defineBelow",
+                    "value": {
+                        "company_name": "NVIDIA",
+                        "event_date": "={{ $json.date }}",
+                        "description": "={{ $json.event }}"
+                    }
+                }
+            },
+            "id": "supabase_save",
+            "name": "Supabase Save",
+            "type": "n8n-nodes-base.supabase",
+            "typeVersion": 1,
+            "position": [
+                1100,
+                300
+            ]
+        }
+    ],
+    "connections": {
+        "Manual Trigger": {
+            "main": [
+                [
+                    {
+                        "node": "SerpAPI Search",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "SerpAPI Search": {
+            "main": [
+                [
+                    {
+                        "node": "Aggregate Snippets",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Aggregate Snippets": {
+            "main": [
+                [
+                    {
+                        "node": "AI Synthesis",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Google Gemini": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "AI Synthesis",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "AI Synthesis": {
+            "main": [
+                [
+                    {
+                        "node": "Parse Events",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Parse Events": {
+            "main": [
+                [
+                    {
+                        "node": "Supabase Save",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
