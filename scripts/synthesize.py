@@ -42,11 +42,13 @@ def synthesize_history(results, query):
 Analyze the following web search snippets related to '{query}' and extract a chronological timeline of the most significant company milestones or events.
 
 For each milestone, you MUST extract structured entities based on the "人事時地物" framework:
-- who (People or organizations involved - as an array of strings, e.g. ["Jensen Huang", "NVIDIA"])
-- what (Core products, technologies, or events - as an array of strings, e.g. ["GeForce 256", "GPU"])
+- who (Strictly ONLY key historical figures, founders, executives, or core parent/partner organizations involved. Never put products, software, technical concepts, stock exchanges, or general events here. E.g. ["Jensen Huang", "NVIDIA"])
+- what (Core products, technologies, software, stock tickers, or specific event names - e.g. ["GeForce 256", "GPU", "TWSE: 3454", "VORTEX"])
 - where (Locations - as an array of strings, e.g. ["San Jose"])
 - when (The clean YYYY-MM-DD or YYYY date)
 - why (Consequential reasons or business context)
+
+Additionally, extract a "relationships" list connecting these entities together.
 
 Return a JSON array of objects. Each object MUST have exactly these fields:
 - "date": "YYYY-MM-DD" or "YYYY" (matching the 'when' entity)
@@ -58,6 +60,9 @@ Return a JSON array of objects. Each object MUST have exactly these fields:
     "when": "YYYY-MM-DD or YYYY",
     "why": "Context summary"
   }}
+- "relationships": [
+    {{"source": "Entity 1", "target": "Entity 2", "label": "A short relationship description in Traditional Chinese (Taiwan), e.g. 創辦人, 收購, 旗下產品, 技術合作"}}
+  ]
 - "sources": [
     {{"url": "The exact source URL validating this event from the provided snippets"}}
   ]
