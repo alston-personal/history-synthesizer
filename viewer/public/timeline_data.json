@@ -1,17 +1,257 @@
 [
   {
-    "date": "1993-04-05",
-    "event": "NVIDIA was founded by Jensen Huang, Chris Malachowsky, and Curtis Priem, with a vision to bring 3D graphics to the gaming and multimedia markets.",
-    "source": "https://www.nvidia.com/en-us/about-nvidia/corporate-timeline/"
+    "date": "1976-04-01",
+    "event": "Apple Computer, Inc. was founded by college dropouts Steve Jobs and Steve Wozniak, who shared a vision of changing computing and setting new benchmarks in product innovation.",
+    "entities": {
+      "who": [
+        "Steve Jobs",
+        "Steve Wozniak",
+        "Apple Computer, Inc."
+      ],
+      "what": [],
+      "where": [],
+      "when": "1976-04-01",
+      "why": "Founded to change computing and set new benchmarks in product innovation, user-centric functionality, and aesthetics."
+    },
+    "relationships": [
+      {
+        "source": "Steve Jobs",
+        "target": "Apple Computer, Inc.",
+        "label": "共同創辦人"
+      },
+      {
+        "source": "Steve Wozniak",
+        "target": "Apple Computer, Inc.",
+        "label": "共同創辦人"
+      }
+    ],
+    "sources": [
+      {
+        "url": "https://www.britannica.com/money/Apple-Inc",
+        "authority": "Premium Press",
+        "trust": 0.8
+      },
+      {
+        "url": "https://guides.loc.gov/this-month-in-business-history/april/apple-computer-founded",
+        "authority": "General Source",
+        "trust": 0.5
+      }
+    ],
+    "confidence": 0.9
   },
   {
-    "date": "2023",
-    "event": "NVIDIA became the seventh U.S. company to reach a US$1 trillion valuation, marking a significant financial milestone.",
-    "source": "https://en.wikipedia.org/wiki/Nvidia"
+    "date": "1983",
+    "event": "Apple introduced the Lisa computer, an early personal computer known for its graphical user interface.",
+    "entities": {
+      "who": [
+        "Apple"
+      ],
+      "what": [
+        "Lisa"
+      ],
+      "where": [],
+      "when": "1983",
+      "why": "Debut of an iconic product, signaling innovation in personal computing."
+    },
+    "relationships": [
+      {
+        "source": "Apple",
+        "target": "Lisa",
+        "label": "推出產品"
+      }
+    ],
+    "sources": [
+      {
+        "url": "https://www.businessinsider.com/apple-events",
+        "authority": "General Source",
+        "trust": 0.5
+      }
+    ],
+    "confidence": 0.5
   },
   {
-    "date": "2025-07",
-    "event": "NVIDIA became the world's first company to reach a $4 trillion market capitalization, a milestone driven by soaring demand for its AI data center hardware.",
-    "source": "https://www.britannica.com/money/NVIDIA-Corporation"
+    "date": "1984",
+    "event": "Apple debuted the Macintosh, a personal computer that became highly influential for its user-friendly interface.",
+    "entities": {
+      "who": [
+        "Apple"
+      ],
+      "what": [
+        "Macintosh"
+      ],
+      "where": [],
+      "when": "1984",
+      "why": "Debut of a pivotal product, known for its impact on personal computing."
+    },
+    "relationships": [
+      {
+        "source": "Apple",
+        "target": "Macintosh",
+        "label": "推出產品"
+      }
+    ],
+    "sources": [
+      {
+        "url": "https://www.businessinsider.com/apple-events",
+        "authority": "General Source",
+        "trust": 0.5
+      }
+    ],
+    "confidence": 0.5
+  },
+  {
+    "date": "1997",
+    "event": "Steve Jobs returned to Apple, marking a significant leadership change and the beginning of a new era for the company.",
+    "entities": {
+      "who": [
+        "Steve Jobs",
+        "Apple"
+      ],
+      "what": [],
+      "where": [],
+      "when": "1997",
+      "why": "Return of a key founder and executive, leading to a revitalization of the company."
+    },
+    "relationships": [
+      {
+        "source": "Steve Jobs",
+        "target": "Apple",
+        "label": "回歸"
+      }
+    ],
+    "sources": [
+      {
+        "url": "https://www.businessinsider.com/apple-events",
+        "authority": "General Source",
+        "trust": 0.5
+      }
+    ],
+    "confidence": 0.5
+  },
+  {
+    "date": "1998",
+    "event": "Apple unveiled the iMac desktop computer, a colorful and innovative all-in-one personal computer.",
+    "entities": {
+      "who": [
+        "Apple"
+      ],
+      "what": [
+        "iMac"
+      ],
+      "where": [],
+      "when": "1998",
+      "why": "A significant product launch after Steve Jobs' return, helping to redefine Apple's product line."
+    },
+    "relationships": [
+      {
+        "source": "Apple",
+        "target": "iMac",
+        "label": "推出產品"
+      }
+    ],
+    "sources": [
+      {
+        "url": "https://www.reuters.com/article/technology/factbox-apples-history-and-milestones-idUSTRE77N8L7/",
+        "authority": "Premium Press",
+        "trust": 0.8
+      }
+    ],
+    "confidence": 0.8
+  },
+  {
+    "date": "2001",
+    "event": "Apple introduced the iPod, a portable digital music player that revolutionized the music industry.",
+    "entities": {
+      "who": [
+        "Apple"
+      ],
+      "what": [
+        "iPod"
+      ],
+      "where": [],
+      "when": "2001",
+      "why": "Launch of a groundbreaking product that transformed digital music consumption."
+    },
+    "relationships": [
+      {
+        "source": "Apple",
+        "target": "iPod",
+        "label": "推出產品"
+      }
+    ],
+    "sources": [
+      {
+        "url": "https://www.reuters.com/article/technology/factbox-apples-history-and-milestones-idUSTRE77N8L7/",
+        "authority": "Premium Press",
+        "trust": 0.8
+      }
+    ],
+    "confidence": 0.8
+  },
+  {
+    "date": "2003",
+    "event": "The iTunes Store opened, providing a platform for users to legally buy and download music online.",
+    "entities": {
+      "who": [
+        "Apple"
+      ],
+      "what": [
+        "iTunes Store"
+      ],
+      "where": [],
+      "when": "2003",
+      "why": "Opened to allow users to buy and download digital music, fundamentally changing music distribution."
+    },
+    "relationships": [
+      {
+        "source": "Apple",
+        "target": "iTunes Store",
+        "label": "推出服務"
+      }
+    ],
+    "sources": [
+      {
+        "url": "https://www.reuters.com/article/technology/factbox-apples-history-and-milestones-idUSTRE77N8L7/",
+        "authority": "Premium Press",
+        "trust": 0.8
+      }
+    ],
+    "confidence": 0.8
+  },
+  {
+    "date": "2020",
+    "event": "The Mac product line began its transition to Apple Silicon, marking a significant architectural shift from Intel processors to Apple's custom-designed chips.",
+    "entities": {
+      "who": [
+        "Apple"
+      ],
+      "what": [
+        "Mac",
+        "Apple Silicon"
+      ],
+      "where": [],
+      "when": "2020",
+      "why": "Major strategic and technological shift for Mac computers, building on custom chip development."
+    },
+    "relationships": [
+      {
+        "source": "Apple",
+        "target": "Mac",
+        "label": "產品線轉換"
+      },
+      {
+        "source": "Apple",
+        "target": "Apple Silicon",
+        "label": "技術開發"
+      }
+    ],
+    "sources": [
+      {
+        "url": "https://computerhistory.org/apple-timeline/",
+        "authority": "General Source",
+        "trust": 0.5
+      }
+    ],
+    "confidence": 0.5
   }
 ]

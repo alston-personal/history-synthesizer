@@ -6,7 +6,8 @@ from urllib.parse import urlparse
 
 # Hardcoded API keys for instant out-of-the-box execution
 SERPAPI_KEY = "1e20ae6397bae5b68d24f10e7774792d8729e8405ac64764ec590e6095351ec3"
-GEMINI_API_KEY = "AIzaSyA6n1nXt2VaEmIi_c3UFNPn3i-79QWwWSs"
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY") or "AIzaSyA6n1nXt2VaEmIi_c3UFNPn3i-79QWwWSs"
+
 
 def search_history(query):
     print(f"🔍 Crawling live web & news data for: '{query}'...")
