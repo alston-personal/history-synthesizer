@@ -4,26 +4,53 @@ import json
 import requests
 from urllib.parse import urlparse
 
-# Hardcoded API keys for instant out-of-the-box execution
-SERPAPI_KEY = "1e20ae6397bae5b68d24f10e7774792d8729e8405ac64764ec590e6095351ec3"
+# Add AgentOS common library path
+sys.path.append("/home/ubuntu/.local/lib/agentos")
+try:
+    from agentos_collector import TrendCollector
+except ImportError:
+    TrendCollector = None
+
+SERPAPI_KEY = os.environ.get("SERPAPI_KEY") or "1e20ae6397bae5b68d24f10e7774792d8729e8405ac64764ec590e6095351ec3"
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY") or "AIzaSyA6n1nXt2VaEmIi_c3UFNPn3i-79QWwWSs"
 
 
 def search_history(query):
     print(f"🔍 Crawling live web & news data for: '{query}'...")
-    params = {
-        "q": f"{query} history milestones company timeline news key events",
-        "api_key": SERPAPI_KEY,
-        "num": 10
-    }
-    try:
-        response = requests.get("https://serpapi.com/search", params=params)
-        response.raise_for_status()
-        data = response.json()
-        return data.get("organic_results", []) + data.get("news_results", [])
-    except Exception as e:
-        print(f"❌ Search Error: {e}")
-        return []
+    results = []
+    
+    # 1. Try SerpAPI if key is available
+    if SERPAPI_KEY:
+        try:
+            params = {
+                "q": f"{query} history milestones company timeline news key events",
+                "api_key": SERPAPI_KEY,
+                "num": 10
+            }
+            response = requests.get("https://serpapi.com/search", params=params, timeout=8)
+            if response.status_code == 200:
+                data = response.json()
+                results = data.get("organic_results", []) + data.get("news_results", [])
+        except Exception as e:
+            print(f"⚠️ SerpAPI unavailable: {e}")
+
+    # 2. Fallback to AgentOS Common TrendCollector (0 API Key Dependency)
+    if not results and TrendCollector:
+        print(f"⚡ [Fallback] Using AgentOS Shared TrendCollector (Zero API Key dependency)...")
+        try:
+            collector = TrendCollector()
+            items = collector.fetch_news_rss(f"{query} 歷史 里程碑 發展史", limit=10)
+            for it in items:
+                results.append({
+                    "title": it.get("title", ""),
+                    "snippet": it.get("summary", ""),
+                    "link": it.get("link", "")
+                })
+        except Exception as e:
+            print(f"❌ TrendCollector error: {e}")
+
+    print(f"   ✓ Retrieved {len(results)} source items.")
+    return results
 
 def synthesize_history(results, query):
     print(f"🧠 Extracting relational entities ('人事時地物') via Gemini...")

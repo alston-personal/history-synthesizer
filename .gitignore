@@ -11,3 +11,7 @@ __pycache__/
 *.pyc
 node_modules/
 dist/
+
+# secrets
+.env
+.env.*

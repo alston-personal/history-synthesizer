@@ -1656,7 +1656,10 @@ function handleSearchSynthesis() {
         renderTimeline(currentEvents)
       } else {
         // 🚀 Real-time HTTP request to the Python backend API server!
-        fetch('http://localhost:8087/api/synthesize', {
+        const apiUrl = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+          ? 'http://localhost:8087/api/synthesize'
+          : '/chronos/api/synthesize';
+        fetch(apiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ query: query })
